@@ -33,6 +33,21 @@ class Router extends CI_Controller {
 			);
 	        //echo validation_errors();
 	    }else{
+	    	$validate_msg = '';
+	    	if (!filter_var($data['loopback'], FILTER_VALIDATE_IP)) {
+			 	$validate_msg .= 'Please enter a valid IP address.\n  ';
+			}
+
+			if (!filter_var($data['mac_address'], FILTER_VALIDATE_MAC)) {
+			 	$validate_msg .= 'Please enter a valid mac address. ';
+			}
+
+			if($validate_msg != ''){
+				$data['result'] = array('status'=>'error',
+					'message' => $validate_msg
+				);
+				echo json_encode($data['result']);die;
+			}
 
 			$result=$this->RoutersModel->saveRouter($data);
 			$data['result'] = array('status'=>'success',
@@ -65,36 +80,42 @@ class Router extends CI_Controller {
 		$data['mac_address']=$this->input->post('mac_address');
 		$data['id']=$this->input->post('id');
 		$this->load->library('form_validation');
+		$validate_msg = '';
 
 		$check_sapid = $this->db->select('sapid')->from('routers')
 		->where(array('routers.id !='=>$data['id'],'routers.sapid'=>$data['sapid']))->get()->row();  
 		if($check_sapid){
-			$data['result'] = array('status'=>'error',
-				'message' => 'This sapid is already used.'
-			);
-			echo json_encode($data['result']);die;
+			$validate_msg .= 'This sapid is already used. \n ';
 		}
 		$check_hostname = $this->db->select('hostname')->from('routers')->where(array('routers.id !='=>$data['id'],'routers.hostname'=>$data['hostname']))->get()->row();    
 		if($check_hostname){
-			$data['result'] = array('status'=>'error',
-				'message' => 'This hostname is already used.'
-			);
-			echo json_encode($data['result']);die;
+			$validate_msg .= 'This hostname is already used. \n ';
 		}
 		$check_loopback = $this->db->select('loopback')->from('routers')->where(array('routers.id !='=>$data['id'],'routers.loopback'=>$data['loopback']))->get()->row();    
 		if($check_loopback){
-			$data['result'] = array('status'=>'error',
-				'message' => 'This loopback is already used.'
-			);
-			echo json_encode($data['result']);die;
+			$validate_msg .= 'This loopback is already used. \n ';
 		}
 		$check_mac_address = $this->db->select('mac_address')->from('routers')->where(array('routers.id !='=>$data['id'],'routers.mac_address'=>$data['mac_address']))->get()->row();    
 		if($check_mac_address){
+			$validate_msg .= 'This mac_address is already used. \n ';
+		}
+
+		
+    	if (!filter_var($data['loopback'], FILTER_VALIDATE_IP)) {
+		 	$validate_msg .= 'Please enter a valid IP address.\n  ';
+		}
+
+		if (!filter_var($data['mac_address'], FILTER_VALIDATE_MAC)) {
+		 	$validate_msg .= 'Please enter a valid mac address. ';
+		}
+
+		if($validate_msg != ''){
 			$data['result'] = array('status'=>'error',
-				'message' => 'This mac_address is already used.'
+				'message' => $validate_msg
 			);
 			echo json_encode($data['result']);die;
 		}
+
 		//echo validation_errors();die;
 		$this->form_validation->set_rules('sapid', 'sapid', 'min_length[18]|max_length[18]|required[routers.sapid]');
 		$this->form_validation->set_rules('hostname', 'Hostname', 'min_length[14]|max_length[14]|required[routers.hostname]');
@@ -107,7 +128,6 @@ class Router extends CI_Controller {
 			);
 	        //echo validation_errors();
 	    }else{
-
 			$result=$this->RoutersModel->updateRouter($data);
 			$data['result'] = array('status'=>'success',
 				'message' => 'Router updated successfully.'
@@ -124,4 +144,3 @@ class Router extends CI_Controller {
         echo json_encode($result);
 	}
 }
-// https://www.thetopsites.net/article/53665547.shtml#:~:text=If%20a%20new%20customer%20name,value%20exists%20in%20the%20database.

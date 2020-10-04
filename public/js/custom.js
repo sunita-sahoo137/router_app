@@ -27,6 +27,7 @@ function getRouterList(){
             $html = '<tr><td>No results found</td></tr>';
           }
            $('#routerList tbody').html($html);
+           $('#routerList').DataTable();
         },
         error:function(res)
         {
